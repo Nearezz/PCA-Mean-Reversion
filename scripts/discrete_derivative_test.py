@@ -2,23 +2,18 @@ import pandas as pd
 import numpy as np
 from itertools import combinations
 from concurrent.futures import ProcessPoolExecutor, as_completed
-from statsmodels.tsa.stattools import adfuller
 import os
-from tqdm import tqdm
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RESULT_DIR = os.path.join(ROOT_DIR, "results")
+DATA_DIR = os.path.join(ROOT_DIR, "data")
 
 time_frame = "1m"
-data_csv = os.path.join(RESULT_DIR,f"close_prices/{time_frame}_close_for_all_tickers.csv")
+data_csv = os.path.join(DATA_DIR,f"close_prices/{time_frame}_close_for_all_tickers.csv")
 df = pd.read_csv(data_csv)
 cols = [c for c in df.columns if c != "timestamp"]
 combs = list(combinations(cols,2))
 
-
-
-
-MAXLAG = 0
 def process_pair(sym1,sym2):
     try: 
         close1 = df[sym1]
@@ -39,11 +34,6 @@ def process_pair(sym1,sym2):
 
         singular_vals_squared = [v**2 for v in S]
         n = prices.shape[0]
-        lambda_1 = singular_vals_squared[0]/ (n-1)
-        lambda_2 = singular_vals_squared[1]/(n-1)
-        total_var = lambda_1 + lambda_2
-        lambda_1_pct = (lambda_1 / total_var) * 100
-        lambda_2_pct = (lambda_2 / total_var) * 100
 
         projecting_onto_pc2 = prices_centered @ principal_vector_two
         secent_slope = np.diff(projecting_onto_pc2).mean() 
@@ -64,7 +54,7 @@ if __name__ == "__main__":
             executor.submit(process_pair, sym1, sym2)
             for sym1, sym2 in combs
         ]
-        for future in tqdm(as_completed(futures_pairs)):
+        for future in as_completed(futures_pairs):
             res = future.result()
             if res:
                 results.append(res)
@@ -72,6 +62,6 @@ if __name__ == "__main__":
     df_results = pd.DataFrame(results)
     df_results["Discrete Derivative"] = df_results["Discrete Derivative"].abs()
     df_results = df_results.sort_values(by="Discrete Derivative", ascending=True)
-    output_csv = os.path.join(RESULT_DIR, f"{time_frame}_discreate_derivative_results.csv")    
+    output_csv = os.path.join(RESULT_DIR, f"{time_frame}_discrete_derivative_results.csv")    
     df_results.to_csv(output_csv, index=False)
     print(f"Results saved to {output_csv}")
