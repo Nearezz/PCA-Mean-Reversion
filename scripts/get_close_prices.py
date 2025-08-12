@@ -10,7 +10,7 @@ DATA_DIR = os.path.join(ROOT_DIR,"Data")
 RESULTS_DIR = os.path.join(ROOT_DIR,"results")
 
 
-timeframe = "1m"
+timeframe = "5m"
 
 data_csvs = {
     "AVAX" : os.path.join(DATA_DIR,f"{timeframe}_Data",f"AVAX_USDT_{timeframe}.csv"),
@@ -23,7 +23,6 @@ data_csvs = {
 }
 
 def csv_loading(ticker,file_path):
-   # created a new df
    df = pd.read_csv(
       file_path,
       usecols=["timestamp","close"],
@@ -42,6 +41,5 @@ with ThreadPoolExecutor(max_workers=max_workers) as executor:
       dfs.append(future.result())
 
 close_df = pd.concat(dfs,axis=1,join="inner").sort_index()
-print(close_df['BTC'].mean())
 close_df.to_csv(f"{RESULTS_DIR}/{timeframe}_close_for_all_tickers.csv",index=True).sort
 
