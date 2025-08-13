@@ -33,14 +33,19 @@ def process_pair(sym1,sym2):
 
 
         singular_vals_squared = [v**2 for v in S]
-        n = prices.shape[0]
+        total_var = sum(singular_vals_squared)
+        var_1 = singular_vals_squared[0]/total_var
+        var_2 = singular_vals_squared[1]/total_var
+
 
         projecting_onto_pc2 = prices_centered @ principal_vector_two
         secent_slope = np.diff(projecting_onto_pc2).mean() 
 
         return {
-        "Pair": f"{sym1.split('_')[0]}–{sym2.split('_')[0]}",
-        "Discrete Derivative": secent_slope 
+        "Asset Pair": f"{sym1.split('_')[0]}–{sym2.split('_')[0]}",
+       "Discrete Derivative": secent_slope,
+        "Principal Component 1 Variance (%)": var_1 * 100,
+        "Principal Component 2 Variance (%)": var_2 * 100
     }
     except Exception as e:
             print(f"Error with {sym1} and {sym2}: {e}")
